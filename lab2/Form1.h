@@ -15,8 +15,8 @@ namespace CppCLRWinFormsProject {
 	using namespace System::Drawing;
 
 	// углы в радианах для проекций
-	const double phi = 35.26 * deg2rad; // для димметрии
-	const double psy = 45.0 * deg2rad; // для изометрии
+	const double psy = 45.0 * deg2rad; // для димметрии
+	const double phi = atan(sin(psy)) * deg2rad; // для димметрии
 	const double alpha = 30.0 * deg2rad; // для Кавалье и Кабине
 
 	// координата для центральной проекции
@@ -28,30 +28,31 @@ namespace CppCLRWinFormsProject {
 	//матрицы общие
 	double hmg_p[vert_num][dimension]			  = { 0 }; // матрица однородных координат фигуры
 	int	   dek_p[vert_num][dimension - 1]		  = { 0 }; // матрица экранных координат фигуры
-	//double compose_matrix[dimension][dimension]	  = { 0 }; // матрица преобразования
 
 	//матрицы проекций
 	double matrix_Front[dimension][dimension] = // матрица вида спереди
 	{ 1, 0, 0, 0,
-	0, 1, 0, 0,
-	0, 0, 0, 0,
-	0, 0, 0, 1 };
+	  0, 1, 0, 0,
+	  0, 0, 0, 0,
+	  0, 0, 0, 1 };
 
 	double matrix_Center[dimension][dimension] = //центральная
 	{ 1, 0, 0, 0,
-	0, 1, 0, 0,
-	0, 0, 0, 1 / d,
-	0, 0, 0, 1 };
+	  0, 1, 0, 0,
+	  0, 0, 0, 1 / d,
+	  0, 0, 0, 1 };
 
-	double matrix_Dimetry[dimension][dimension] = { 1, 0, 0, 0, 
-	0,	cos(phi),	sin(phi),	0, 
-	0,	-sin(phi),	cos(phi),	0, 
-	0,	0,			0,			1 };
+	double matrix_Dimetry[dimension][dimension] =
+	{ cos(psy),			sin(phi) * sin(psy),		0,		0, 
+	  0,				cos(phi),					0,		0,
+	  sin(psy),			-sin(phi) * cos(psy),		0,		0,
+	  0,				0,							0,		1 };
 
-	double matrix_Cabinet[dimension][dimension] = { 1, 0, 0, 0,
-	0,					1,					0,	0,
-	-0.5*cos(alpha),	-0.5*sin(alpha),	0,	0,
-	0,					0,					0,	1 };
+	double matrix_Cabinet[dimension][dimension] = { 
+	1,					0,					0,			0,
+	0,					1,					0,			0,
+	-0.5*cos(alpha),	-0.5*sin(alpha),	0,			0,
+	0,					0,					0,			1 };
 
 	/// <summary>
 	/// Summary for Form1
@@ -1189,7 +1190,7 @@ private: System::Windows::Forms::TextBox^ textBox_rotx2;
 			this->textBox_degree->Name = L"textBox_degree";
 			this->textBox_degree->Size = System::Drawing::Size(30, 20);
 			this->textBox_degree->TabIndex = 0;
-			this->textBox_degree->Text = L"45";
+			this->textBox_degree->Text = L"1";
 			// 
 			// label22
 			// 
@@ -1256,7 +1257,7 @@ private: System::Windows::Forms::TextBox^ textBox_rotx2;
 			this->textBox_roty2->Name = L"textBox_roty2";
 			this->textBox_roty2->Size = System::Drawing::Size(47, 20);
 			this->textBox_roty2->TabIndex = 0;
-			this->textBox_roty2->Text = L"200";
+			this->textBox_roty2->Text = L"0";
 			// 
 			// textBox_rotz2
 			// 
@@ -1264,7 +1265,7 @@ private: System::Windows::Forms::TextBox^ textBox_rotx2;
 			this->textBox_rotz2->Name = L"textBox_rotz2";
 			this->textBox_rotz2->Size = System::Drawing::Size(47, 20);
 			this->textBox_rotz2->TabIndex = 0;
-			this->textBox_rotz2->Text = L"0";
+			this->textBox_rotz2->Text = L"10";
 			// 
 			// textBox_rotx2
 			// 
@@ -1272,7 +1273,7 @@ private: System::Windows::Forms::TextBox^ textBox_rotx2;
 			this->textBox_rotx2->Name = L"textBox_rotx2";
 			this->textBox_rotx2->Size = System::Drawing::Size(47, 20);
 			this->textBox_rotx2->TabIndex = 0;
-			this->textBox_rotx2->Text = L"225";
+			this->textBox_rotx2->Text = L"0";
 			// 
 			// groupBox3
 			// 
@@ -1407,6 +1408,7 @@ private: System::Windows::Forms::TextBox^ textBox_rotx2;
 			this->Controls->Add(this->pictureBox_front);
 			this->Controls->Add(this->pictureBox_central);
 			this->Name = L"Form1";
+			this->StartPosition = System::Windows::Forms::FormStartPosition::CenterScreen;
 			this->Text = L"Form1";
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox_central))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox_front))->EndInit();
@@ -1885,10 +1887,10 @@ private: System::Void btn_rotate_Click(System::Object^ sender, System::EventArgs
 
 	// Матрица поворота вокруг Z для выравнивания с XZ
 	double Rz[dimension][dimension] = {
-		{cos(-phi), -sin(-phi), 0, 0},
-		{sin(-phi), cos(-phi), 0, 0},
-		{0, 0, 1, 0},
-		{0, 0, 0, 1}
+		{cos(-phi),		-sin(-phi),		0,		0},
+		{sin(-phi),		cos(-phi),		0,		0},
+		{0,				0,				1,		0},
+		{0,				0,				0,		1}
 	};
 
 	// Шаг 3: Выравнивание вектора PQ с осью Z-------------------------------------------------------------
@@ -1897,36 +1899,36 @@ private: System::Void btn_rotate_Click(System::Object^ sender, System::EventArgs
 
 	// Матрица поворота вокруг Y для выравнивания с Z
 	double Ry[dimension][dimension] = {
-		{cos(theta), 0, sin(theta), 0},
-		{0, 1, 0, 0},
-		{-sin(theta), 0, cos(theta), 0},
-		{0, 0, 0, 1}
+		{cos(theta),	0,		sin(theta),		0},
+		{0,				1,		0,				0},
+		{-sin(theta),	0,		cos(theta),		0},
+		{0,				0,		0,				1}
 	};
 
-	// Шаг 4: ВПоворот вокруг оси Z-------------------------------------------------------------
+	// Шаг 4: Поворот вокруг оси Z-------------------------------------------------------------
 	// Матрица поворота вокруг Z на угол alpha
 	double Rz_alpha[dimension][dimension] = {
-		{cos(alpha), -sin(alpha), 0, 0},
-		{sin(alpha), cos(alpha), 0, 0},
-		{0, 0, 1, 0},
-		{0, 0, 0, 1}
+		{cos(alpha),	-sin(alpha),	0,		0},
+		{sin(alpha),	cos(alpha),		0,		0},
+		{0,				0,				1,		0},
+		{0,				0,				0,		1}
 	};
 
 	// Шаг 5: Обратные преобразования-------------------------------------------------------------
 	// Обратный поворот вокруг Y
 	double Ry_inv[dimension][dimension] = {
-		{cos(-theta), 0, -sin(-theta), 0},
-		{0, 1, 0, 0},
-		{sin(-theta), 0, cos(-theta), 0},
-		{0, 0, 0, 1}
+		{cos(-theta),		0,		-sin(-theta),		0},
+		{0,					1,		0,					0},
+		{sin(-theta),		0,		cos(-theta),		0},
+		{0,					0,		0,					1}
 	};
 
 	// Обратный поворот вокруг Z
 	double Rz_inv[dimension][dimension] = {
-		{cos(-phi), sin(-phi), 0, 0},
-		{-sin(-phi), cos(-phi), 0, 0},
-		{0, 0, 1, 0},
-		{0, 0, 0, 1}
+		{cos(-phi),			sin(-phi),		0,		0},
+		{-sin(-phi),		cos(-phi),		0,		0},
+		{0,					0,				1,		0},
+		{0,					0,				0,		1}
 	};
 
 	// Обратный перенос
@@ -1944,7 +1946,6 @@ private: System::Void btn_rotate_Click(System::Object^ sender, System::EventArgs
 	matrix_mult(vert_num, matrix_buf_2, Ry_inv, matrix_buf_1);
 	matrix_mult(vert_num, matrix_buf_1, Rz_inv, matrix_buf_2);
 	matrix_mult(vert_num, matrix_buf_2, T_inv, hmg_p);
-	//hmg2dek(vert_num, hmg_p, dek_p);
 
 	double Result[vert_num][dimension] = { 0 };
 	matrix_mult(vert_num, hmg_p, matrix_Center, Result);
