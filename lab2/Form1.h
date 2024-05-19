@@ -54,6 +54,8 @@ namespace CppCLRWinFormsProject {
 	-0.5*cos(alpha),	-0.5*sin(alpha),	0,			0,
 	0,					0,					0,			1 };
 
+	int Roberts[8] = { 0 };
+
 	/// <summary>
 	/// Summary for Form1
 	/// </summary>
@@ -141,6 +143,7 @@ namespace CppCLRWinFormsProject {
 		textBox_z12->Text = Convert::ToString(hmg_p[11][2]);
 		textBox_w12->Text = Convert::ToString(hmg_p[11][3]);
 	}
+
 	private: System::Void matrix_mult(int number_of_vertex_A, double A[][dimension], double B[][dimension], double C[][dimension]) {
 		int i, j, k;
 		for (i = 0; i < number_of_vertex_A; i++)
@@ -150,6 +153,7 @@ namespace CppCLRWinFormsProject {
 					C[i][j] += (A[i][k] * B[k][j]);
 			}
 	}
+
 	private: System::Void hmg2dek(int number_of_vertex_A, double HMG[][dimension], int DEK[][dimension - 1]) {
 		for (int i = 0; i < number_of_vertex_A; i++) {
 			double a = HMG[i][dimension - 1];
@@ -162,6 +166,31 @@ namespace CppCLRWinFormsProject {
 				break;
 			}
 		}
+	}
+
+	private: System::Int32 defineAngle(int vertex_0, int vertex_1, int vertex_2, int V[][dimension - 1]) {
+		int Nrm[3], R[3];
+		// вычисление вектора нормали по трем точкам, принадлежащим грани
+		Nrm[0] = (((V[vertex_1][1] - V[vertex_0][1]) * (V[vertex_2][2] - V[vertex_1][2])) - ((V[vertex_2][1] - V[vertex_1][1]) * (V[vertex_1][2] - V[vertex_0][2])));
+		Nrm[1] = (((V[vertex_1][2] - V[vertex_0][2]) * (V[vertex_2][0] - V[vertex_1][0])) - ((V[vertex_2][2] - V[vertex_1][2]) * (V[vertex_1][0] - V[vertex_0][0])));
+		Nrm[2] = (((V[vertex_1][0] - V[vertex_0][0]) * (V[vertex_2][1] - V[vertex_1][1])) - ((V[vertex_2][0] - V[vertex_1][0]) * (V[vertex_1][1] - V[vertex_0][1])));
+		R[0] = V[vertex_0][0] - 0.0; // вектор, направленный на наблюдателя
+		R[1] = V[vertex_0][1] - 0.0;
+		R[2] = V[vertex_0][2] + d;
+		return (Nrm[0] * R[0]) + (Nrm[1] * R[1]) + (Nrm[2] * R[2]); // скалярное произведение векторов
+	}
+
+	private: System::Void removeFaces() {
+		Roberts[0] = defineAngle(0, 1, 2, dek_p); // 1 2 3 заднее основание
+
+		Roberts[1] = defineAngle(11, 6, 0, dek_p); // 12 7 1 справа сверху
+		Roberts[2] = defineAngle(6, 7, 1, dek_p); // 7 8 2 справа снизу
+		Roberts[3] = defineAngle(7, 8, 2, dek_p); // 8 9 3 снизу
+		Roberts[4] = defineAngle(8, 9, 3, dek_p); // 9 10 4 слева снизу
+		Roberts[5] = defineAngle(9, 10, 4, dek_p); // 10 11 5 слева сверху 
+		Roberts[6] = defineAngle(10, 11, 5, dek_p); // 11 12 6 сверху
+
+		Roberts[7] = defineAngle(11, 10, 9, dek_p); // 12 11 10 переднее основание
 	}
 
 //------------------------------------------------------------------------------------------------------------
@@ -326,6 +355,11 @@ private: System::Windows::Forms::TextBox^ textBox_rotz2;
 
 
 private: System::Windows::Forms::TextBox^ textBox_rotx2;
+private: System::Windows::Forms::Button^ btn_removeEdges;
+private: System::Windows::Forms::Button^ btn_fillFaces;
+
+
+
 
 
 
@@ -450,6 +484,8 @@ private: System::Windows::Forms::TextBox^ textBox_rotx2;
 			this->textBox_centroidz = (gcnew System::Windows::Forms::TextBox());
 			this->label31 = (gcnew System::Windows::Forms::Label());
 			this->label30 = (gcnew System::Windows::Forms::Label());
+			this->btn_removeEdges = (gcnew System::Windows::Forms::Button());
+			this->btn_fillFaces = (gcnew System::Windows::Forms::Button());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox_central))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox_front))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox_dimetric))->BeginInit();
@@ -1265,7 +1301,7 @@ private: System::Windows::Forms::TextBox^ textBox_rotx2;
 			this->textBox_rotz2->Name = L"textBox_rotz2";
 			this->textBox_rotz2->Size = System::Drawing::Size(47, 20);
 			this->textBox_rotz2->TabIndex = 0;
-			this->textBox_rotz2->Text = L"10";
+			this->textBox_rotz2->Text = L"1";
 			// 
 			// textBox_rotx2
 			// 
@@ -1329,7 +1365,7 @@ private: System::Windows::Forms::TextBox^ textBox_rotx2;
 			this->textBox_height->Name = L"textBox_height";
 			this->textBox_height->Size = System::Drawing::Size(47, 20);
 			this->textBox_height->TabIndex = 0;
-			this->textBox_height->Text = L"100";
+			this->textBox_height->Text = L"200";
 			// 
 			// textBox_centroidy
 			// 
@@ -1337,7 +1373,7 @@ private: System::Windows::Forms::TextBox^ textBox_rotx2;
 			this->textBox_centroidy->Name = L"textBox_centroidy";
 			this->textBox_centroidy->Size = System::Drawing::Size(47, 20);
 			this->textBox_centroidy->TabIndex = 0;
-			this->textBox_centroidy->Text = L"200";
+			this->textBox_centroidy->Text = L"300";
 			// 
 			// textBox_centroidx
 			// 
@@ -1345,7 +1381,7 @@ private: System::Windows::Forms::TextBox^ textBox_rotx2;
 			this->textBox_centroidx->Name = L"textBox_centroidx";
 			this->textBox_centroidx->Size = System::Drawing::Size(47, 20);
 			this->textBox_centroidx->TabIndex = 0;
-			this->textBox_centroidx->Text = L"225";
+			this->textBox_centroidx->Text = L"150";
 			// 
 			// textBox_edge
 			// 
@@ -1391,11 +1427,33 @@ private: System::Windows::Forms::TextBox^ textBox_rotx2;
 			this->label30->TabIndex = 1;
 			this->label30->Text = L"Y";
 			// 
+			// btn_removeEdges
+			// 
+			this->btn_removeEdges->Location = System::Drawing::Point(924, 640);
+			this->btn_removeEdges->Name = L"btn_removeEdges";
+			this->btn_removeEdges->Size = System::Drawing::Size(128, 34);
+			this->btn_removeEdges->TabIndex = 6;
+			this->btn_removeEdges->Text = L"Remove edges";
+			this->btn_removeEdges->UseVisualStyleBackColor = true;
+			this->btn_removeEdges->Click += gcnew System::EventHandler(this, &Form1::btn_removeFaces_Click);
+			// 
+			// btn_fillFaces
+			// 
+			this->btn_fillFaces->Location = System::Drawing::Point(1057, 640);
+			this->btn_fillFaces->Name = L"btn_fillFaces";
+			this->btn_fillFaces->Size = System::Drawing::Size(128, 34);
+			this->btn_fillFaces->TabIndex = 6;
+			this->btn_fillFaces->Text = L"Fill faces";
+			this->btn_fillFaces->UseVisualStyleBackColor = true;
+			this->btn_fillFaces->Click += gcnew System::EventHandler(this, &Form1::btn_fillFaces_Click);
+			// 
 			// Form1
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(1300, 866);
+			this->Controls->Add(this->btn_fillFaces);
+			this->Controls->Add(this->btn_removeEdges);
 			this->Controls->Add(this->groupBox1);
 			this->Controls->Add(this->groupBox3);
 			this->Controls->Add(this->groupBox2);
@@ -1475,29 +1533,29 @@ private: System::Void pictureBox_front_Paint(System::Object^ sender, System::Win
 	int y12 = dek_p[11][1];
 	int z12 = dek_p[11][2];
 
-	//верхнее основание
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x1, y1, x2, y2);
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x2, y2, x3, y3);
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x3, y3, x4, y4);
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x4, y4, x5, y5);
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x5, y5, x6, y6);
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x6, y6, x1, y1);
+	//заднее основание
+	if ((Roberts[0] <= 0) || (Roberts[1] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x6, y6, x1, y1);
+	if ((Roberts[0] <= 0) || (Roberts[2] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x1, y1, x2, y2);
+	if ((Roberts[0] <= 0) || (Roberts[3] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x2, y2, x3, y3);
+	if ((Roberts[0] <= 0) || (Roberts[4] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x3, y3, x4, y4);
+	if ((Roberts[0] <= 0) || (Roberts[5] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x4, y4, x5, y5);
+	if ((Roberts[0] <= 0) || (Roberts[6] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x5, y5, x6, y6);
 
 	//нижнее основание
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x7, y7, x8, y8);
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x8, y8, x9, y9);
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x9, y9, x10, y10);
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x10, y10, x11, y11);
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x11, y11, x12, y12);
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x12, y12, x7, y7);
+	if ((Roberts[7] <= 0) || (Roberts[6] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x7, y7, x8, y8);
+	if ((Roberts[7] <= 0) || (Roberts[1] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x8, y8, x9, y9);
+	if ((Roberts[7] <= 0) || (Roberts[2] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x9, y9, x10, y10);
+	if ((Roberts[7] <= 0) || (Roberts[3] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x10, y10, x11, y11);
+	if ((Roberts[7] <= 0) || (Roberts[4] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x11, y11, x12, y12);
+	if ((Roberts[7] <= 0) || (Roberts[5] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x12, y12, x7, y7);
 
 	//рёбры между основаниями (высоты)
-	e->Graphics->DrawLine(System::Drawing::Pens::Black, x1, y1, x7, y7);
-	e->Graphics->DrawLine(System::Drawing::Pens::Red, x2, y2, x8, y8);
-	e->Graphics->DrawLine(System::Drawing::Pens::Red, x3, y3, x9, y9);
-	e->Graphics->DrawLine(System::Drawing::Pens::Red, x4, y4, x10, y10);
-	e->Graphics->DrawLine(System::Drawing::Pens::Red, x5, y5, x11, y11);
-	e->Graphics->DrawLine(System::Drawing::Pens::Red, x6, y6, x12, y12);
+	if ((Roberts[1] <= 0) || (Roberts[2] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Black, x1, y1, x7, y7);
+	if ((Roberts[2] <= 0) || (Roberts[3] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Red, x2, y2, x8, y8);
+	if ((Roberts[3] <= 0) || (Roberts[4] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Red, x3, y3, x9, y9);
+	if ((Roberts[4] <= 0) || (Roberts[5] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Red, x4, y4, x10, y10);
+	if ((Roberts[5] <= 0) || (Roberts[6] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Red, x5, y5, x11, y11);
+	if ((Roberts[6] <= 0) || (Roberts[1] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Red, x6, y6, x12, y12);
 }
 private: System::Void pictureBox_central_Paint(System::Object^ sender, System::Windows::Forms::PaintEventArgs^ e) {
 	int x1 = dek_p[0][0];
@@ -1548,29 +1606,230 @@ private: System::Void pictureBox_central_Paint(System::Object^ sender, System::W
 	int y12 = dek_p[11][1];
 	int z12 = dek_p[11][2];
 
-	//верхнее основание
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x1, y1, x2, y2);
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x2, y2, x3, y3);
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x3, y3, x4, y4);
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x4, y4, x5, y5);
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x5, y5, x6, y6);
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x6, y6, x1, y1);
+
+	////----------------------------------------------рисование ребёр-----------------------------------------------------
+	//bool edges[18] = { 0 };
+	//int countZeros = 0;
+	//for (int i = 0; i < sizeof(Roberts); i++) {
+	//	if (Roberts[i] == 0) countZeros++;
+	//}
+	////заднее основание
+	//if ((Roberts[0] <= 0) || (Roberts[1] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Green, x6, y6, x1, y1); { if (countZeros != sizeof(Roberts)) edges[0] = 1; } }
+	//if ((Roberts[0] <= 0) || (Roberts[2] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Green, x1, y1, x2, y2); { if (countZeros != sizeof(Roberts)) edges[1] = 1; } }
+	//if ((Roberts[0] <= 0) || (Roberts[3] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Green, x2, y2, x3, y3); { if (countZeros != sizeof(Roberts)) edges[2] = 1; } }
+	//if ((Roberts[0] <= 0) || (Roberts[4] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Green, x3, y3, x4, y4); { if (countZeros != sizeof(Roberts)) edges[3] = 1; } }
+	//if ((Roberts[0] <= 0) || (Roberts[5] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Green, x4, y4, x5, y5); { if (countZeros != sizeof(Roberts)) edges[4] = 1; } }
+	//if ((Roberts[0] <= 0) || (Roberts[6] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Green, x5, y5, x6, y6); { if (countZeros != sizeof(Roberts)) edges[5] = 1; } }
+
+	////переднее основание
+	//if ((Roberts[7] <= 0) || (Roberts[6] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Blue, x7, y7, x8, y8);	  { if (countZeros != sizeof(Roberts)) edges[6] = 1;  } }
+	//if ((Roberts[7] <= 0) || (Roberts[1] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Blue, x8, y8, x9, y9);	  { if (countZeros != sizeof(Roberts)) edges[7] = 1;  } }
+	//if ((Roberts[7] <= 0) || (Roberts[2] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Blue, x9, y9, x10, y10);	  { if (countZeros != sizeof(Roberts)) edges[8] = 1;  } }
+	//if ((Roberts[7] <= 0) || (Roberts[3] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Blue, x10, y10, x11, y11); { if (countZeros != sizeof(Roberts)) edges[9] = 1;  } }
+	//if ((Roberts[7] <= 0) || (Roberts[4] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Blue, x11, y11, x12, y12); { if (countZeros != sizeof(Roberts)) edges[10] = 1; } }
+	//if ((Roberts[7] <= 0) || (Roberts[5] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Blue, x12, y12, x7, y7);   { if (countZeros != sizeof(Roberts)) edges[11] = 1; } }
+
+	////рёбры между основаниями (высоты)
+	//if ((Roberts[1] <= 0) || (Roberts[2] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Black, x1, y1, x7, y7); { if (countZeros != sizeof(Roberts)) edges[12] = 1; } }
+	//if ((Roberts[2] <= 0) || (Roberts[3] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Red, x2, y2, x8, y8);   { if (countZeros != sizeof(Roberts)) edges[13] = 1; } }
+	//if ((Roberts[3] <= 0) || (Roberts[4] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Red, x3, y3, x9, y9);   { if (countZeros != sizeof(Roberts)) edges[14] = 1; } }
+	//if ((Roberts[4] <= 0) || (Roberts[5] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Red, x4, y4, x10, y10); { if (countZeros != sizeof(Roberts)) edges[15] = 1; } }
+	//if ((Roberts[5] <= 0) || (Roberts[6] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Red, x5, y5, x11, y11); { if (countZeros != sizeof(Roberts)) edges[16] = 1; } }
+	//if ((Roberts[6] <= 0) || (Roberts[1] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Red, x6, y6, x12, y12); { if (countZeros != sizeof(Roberts)) edges[17] = 1; } }
+
+	////----------------------------------------------заливка граней-----------------------------------------------------
+	//// Координаты вершин задней грани
+	//array<System::Drawing::PointF>^ points_backBase = gcnew array<System::Drawing::PointF>(6);
+	//points_backBase[0] = System::Drawing::PointF(x1, y1);
+	//points_backBase[1] = System::Drawing::PointF(x2, y2);
+	//points_backBase[2] = System::Drawing::PointF(x3, y3);
+	//points_backBase[3] = System::Drawing::PointF(x4, y4);
+	//points_backBase[4] = System::Drawing::PointF(x5, y5);
+	//points_backBase[5] = System::Drawing::PointF(x6, y6);
+	//// Создаем кисть для заливки
+	//System::Drawing::SolidBrush^ brush_backBase = gcnew System::Drawing::SolidBrush(System::Drawing::Color::Green);
+	//// Заливаем грань
+	//if (edges[0] && edges[1] && edges[2] && edges[3] && edges[4] && edges[5]) e->Graphics->FillPolygon(brush_backBase, points_backBase);
+
+	//// Координаты вершин передней грани
+	//array<System::Drawing::PointF>^ points_frontBase = gcnew array<System::Drawing::PointF>(6);
+	//points_frontBase[0] = System::Drawing::PointF(x7, y7);
+	//points_frontBase[1] = System::Drawing::PointF(x8, y8);
+	//points_frontBase[2] = System::Drawing::PointF(x9, y9);
+	//points_frontBase[3] = System::Drawing::PointF(x10, y10);
+	//points_frontBase[4] = System::Drawing::PointF(x11, y11);
+	//points_frontBase[5] = System::Drawing::PointF(x12, y12);
+	//// Создаем кисть для заливки
+	//System::Drawing::SolidBrush^ brush_frontBase = gcnew System::Drawing::SolidBrush(System::Drawing::Color::Blue);
+	//// Заливаем грань
+	//if (edges[6] && edges[7] && edges[8] && edges[9] && edges[10] && edges[11]) e->Graphics->FillPolygon(brush_frontBase, points_frontBase);
+
+	//// Создаем кисть для заливки боковых граней
+	//System::Drawing::SolidBrush^ brush_Base = gcnew System::Drawing::SolidBrush(System::Drawing::Color::Red);
+
+	//// Координаты вершин грани 1
+	//array<System::Drawing::PointF>^ points_Base1 = gcnew array<System::Drawing::PointF>(4);
+	//points_Base1[0] = System::Drawing::PointF(x1, y1);
+	//points_Base1[1] = System::Drawing::PointF(x6, y6);
+	//points_Base1[2] = System::Drawing::PointF(x12, y12);
+	//points_Base1[3] = System::Drawing::PointF(x7, y7);
+	//// Заливаем грань
+	//if (edges[0] && edges[11] && edges[17] && edges[12]) e->Graphics->FillPolygon(brush_Base, points_Base1);
+
+	//// Координаты вершин грани 2
+	//array<System::Drawing::PointF>^ points_Base2 = gcnew array<System::Drawing::PointF>(4);
+	//points_Base2[0] = System::Drawing::PointF(x1, y1);
+	//points_Base2[1] = System::Drawing::PointF(x7, y7);
+	//points_Base2[2] = System::Drawing::PointF(x8, y8);
+	//points_Base2[3] = System::Drawing::PointF(x2, y2);
+	//// Заливаем грань
+	//if (edges[1] && edges[6] && edges[12] && edges[13]) e->Graphics->FillPolygon(brush_Base, points_Base2);
+
+	//// Координаты вершин грани 3
+	//array<System::Drawing::PointF>^ points_Base3 = gcnew array<System::Drawing::PointF>(4);
+	//points_Base3[0] = System::Drawing::PointF(x2, y2);
+	//points_Base3[1] = System::Drawing::PointF(x8, y8);
+	//points_Base3[2] = System::Drawing::PointF(x9, y9);
+	//points_Base3[3] = System::Drawing::PointF(x3, y3);
+	//// Заливаем грань
+	//if (edges[2] && edges[7] && edges[13] && edges[14]) e->Graphics->FillPolygon(brush_Base, points_Base3);
+
+	//// Координаты вершин грани 4
+	//array<System::Drawing::PointF>^ points_Base4 = gcnew array<System::Drawing::PointF>(4);
+	//points_Base4[0] = System::Drawing::PointF(x3, y3);
+	//points_Base4[1] = System::Drawing::PointF(x9, y9);
+	//points_Base4[2] = System::Drawing::PointF(x10, y10);
+	//points_Base4[3] = System::Drawing::PointF(x4, y4);
+	//// Заливаем грань
+	//if (edges[3] && edges[8] && edges[14] && edges[15]) e->Graphics->FillPolygon(brush_Base, points_Base4);
+
+	//// Координаты вершин грани 5
+	//array<System::Drawing::PointF>^ points_Base5 = gcnew array<System::Drawing::PointF>(4);
+	//points_Base5[0] = System::Drawing::PointF(x4, y4);
+	//points_Base5[1] = System::Drawing::PointF(x10, y10);
+	//points_Base5[2] = System::Drawing::PointF(x11, y11);
+	//points_Base5[3] = System::Drawing::PointF(x5, y5);
+	//// Заливаем грань
+	//if (edges[4] && edges[9] && edges[15] && edges[16]) e->Graphics->FillPolygon(brush_Base, points_Base5);
+
+	//// Координаты вершин грани 6
+	//array<System::Drawing::PointF>^ points_Base6 = gcnew array<System::Drawing::PointF>(4);
+	//points_Base6[0] = System::Drawing::PointF(x5, y5);
+	//points_Base6[1] = System::Drawing::PointF(x11, y11);
+	//points_Base6[2] = System::Drawing::PointF(x12, y12);
+	//points_Base6[3] = System::Drawing::PointF(x6, y6);
+	//// Заливаем грань
+	//if (edges[5] && edges[10] && edges[16] && edges[17]) e->Graphics->FillPolygon(brush_Base, points_Base6);
+	////---------------------------------------------------------------------------------------------------------------
+	//----------------------------------------------рисование ребёр-----------------------------------------------------
+	//заднее основание
+	if ((Roberts[0] <= 0) || (Roberts[1] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x6, y6, x1, y1);
+	if ((Roberts[0] <= 0) || (Roberts[2] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x1, y1, x2, y2);
+	if ((Roberts[0] <= 0) || (Roberts[3] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x2, y2, x3, y3);
+	if ((Roberts[0] <= 0) || (Roberts[4] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x3, y3, x4, y4);
+	if ((Roberts[0] <= 0) || (Roberts[5] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x4, y4, x5, y5);
+	if ((Roberts[0] <= 0) || (Roberts[6] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x5, y5, x6, y6);
 
 	//нижнее основание
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x7, y7, x8, y8);
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x8, y8, x9, y9);
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x9, y9, x10, y10);
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x10, y10, x11, y11);
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x11, y11, x12, y12);
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x12, y12, x7, y7);
+	if ((Roberts[7] <= 0) || (Roberts[6] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x7, y7, x8, y8);
+	if ((Roberts[7] <= 0) || (Roberts[1] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x8, y8, x9, y9);
+	if ((Roberts[7] <= 0) || (Roberts[2] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x9, y9, x10, y10);
+	if ((Roberts[7] <= 0) || (Roberts[3] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x10, y10, x11, y11);
+	if ((Roberts[7] <= 0) || (Roberts[4] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x11, y11, x12, y12);
+	if ((Roberts[7] <= 0) || (Roberts[5] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x12, y12, x7, y7);
 
 	//рёбры между основаниями (высоты)
-	e->Graphics->DrawLine(System::Drawing::Pens::Black, x1, y1, x7, y7);
-	e->Graphics->DrawLine(System::Drawing::Pens::Red, x2, y2, x8, y8);
-	e->Graphics->DrawLine(System::Drawing::Pens::Red, x3, y3, x9, y9);
-	e->Graphics->DrawLine(System::Drawing::Pens::Red, x4, y4, x10, y10);
-	e->Graphics->DrawLine(System::Drawing::Pens::Red, x5, y5, x11, y11);
-	e->Graphics->DrawLine(System::Drawing::Pens::Red, x6, y6, x12, y12);
+	if ((Roberts[1] <= 0) || (Roberts[2] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Black, x1, y1, x7, y7);
+	if ((Roberts[2] <= 0) || (Roberts[3] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Red, x2, y2, x8, y8);
+	if ((Roberts[3] <= 0) || (Roberts[4] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Red, x3, y3, x9, y9);
+	if ((Roberts[4] <= 0) || (Roberts[5] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Red, x4, y4, x10, y10);
+	if ((Roberts[5] <= 0) || (Roberts[6] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Red, x5, y5, x11, y11);
+	if ((Roberts[6] <= 0) || (Roberts[1] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Red, x6, y6, x12, y12);
+
+	//----------------------------------------------заливка граней-----------------------------------------------------
+	//// Координаты вершин задней грани
+	//array<System::Drawing::PointF>^ points_backBase = gcnew array<System::Drawing::PointF>(6);
+	//points_backBase[0] = System::Drawing::PointF(x1, y1);
+	//points_backBase[1] = System::Drawing::PointF(x2, y2);
+	//points_backBase[2] = System::Drawing::PointF(x3, y3);
+	//points_backBase[3] = System::Drawing::PointF(x4, y4);
+	//points_backBase[4] = System::Drawing::PointF(x5, y5);
+	//points_backBase[5] = System::Drawing::PointF(x6, y6);
+	//// Создаем кисть для заливки
+	//System::Drawing::SolidBrush^ brush_backBase = gcnew System::Drawing::SolidBrush(System::Drawing::Color::Green);
+	//// Заливаем грань
+	////if ((Roberts[1] <= 0))
+	//e->Graphics->FillPolygon(brush_backBase, points_backBase);
+
+	//// Координаты вершин передней грани
+	//array<System::Drawing::PointF>^ points_frontBase = gcnew array<System::Drawing::PointF>(6);
+	//points_frontBase[0] = System::Drawing::PointF(x7, y7);
+	//points_frontBase[1] = System::Drawing::PointF(x8, y8);
+	//points_frontBase[2] = System::Drawing::PointF(x9, y9);
+	//points_frontBase[3] = System::Drawing::PointF(x10, y10);
+	//points_frontBase[4] = System::Drawing::PointF(x11, y11);
+	//points_frontBase[5] = System::Drawing::PointF(x12, y12);
+	//// Создаем кисть для заливки
+	//System::Drawing::SolidBrush^ brush_frontBase = gcnew System::Drawing::SolidBrush(System::Drawing::Color::Blue);
+	//// Заливаем грань
+	//e->Graphics->FillPolygon(brush_frontBase, points_frontBase);
+
+	////// Координаты вершин грани 1
+	//array<System::Drawing::PointF>^ points_Base1 = gcnew array<System::Drawing::PointF>(4);
+	//points_Base1[0] = System::Drawing::PointF(x1, y1);
+	//points_Base1[1] = System::Drawing::PointF(x6, y6);
+	//points_Base1[2] = System::Drawing::PointF(x12, y12);
+	//points_Base1[3] = System::Drawing::PointF(x7, y7);
+	//// Создаем кисть для заливки
+	//System::Drawing::SolidBrush^ brush_Base = gcnew System::Drawing::SolidBrush(System::Drawing::Color::Red);
+	//// Заливаем грань
+	//e->Graphics->FillPolygon(brush_Base, points_Base1);
+
+	////// Координаты вершин грани 2
+	//array<System::Drawing::PointF>^ points_Base2 = gcnew array<System::Drawing::PointF>(4);
+	//points_Base2[0] = System::Drawing::PointF(x1, y1);
+	//points_Base2[1] = System::Drawing::PointF(x7, y7);
+	//points_Base2[2] = System::Drawing::PointF(x8, y8);
+	//points_Base2[3] = System::Drawing::PointF(x2, y2);
+	//// Заливаем грань
+	//e->Graphics->FillPolygon(brush_Base, points_Base2);
+
+	////// Координаты вершин грани 3
+	//array<System::Drawing::PointF>^ points_Base3 = gcnew array<System::Drawing::PointF>(4);
+	//points_Base3[0] = System::Drawing::PointF(x2, y2);
+	//points_Base3[1] = System::Drawing::PointF(x8, y8);
+	//points_Base3[2] = System::Drawing::PointF(x9, y9);
+	//points_Base3[3] = System::Drawing::PointF(x3, y3);
+	//// Заливаем грань
+	//e->Graphics->FillPolygon(brush_Base, points_Base3);
+
+	////// Координаты вершин грани 4
+	//array<System::Drawing::PointF>^ points_Base4 = gcnew array<System::Drawing::PointF>(4);
+	//points_Base4[0] = System::Drawing::PointF(x3, y3);
+	//points_Base4[1] = System::Drawing::PointF(x9, y9);
+	//points_Base4[2] = System::Drawing::PointF(x10, y10);
+	//points_Base4[3] = System::Drawing::PointF(x4, y4);
+	//// Заливаем грань
+	//e->Graphics->FillPolygon(brush_Base, points_Base4);
+
+	////// Координаты вершин грани 5
+	//array<System::Drawing::PointF>^ points_Base5 = gcnew array<System::Drawing::PointF>(4);
+	//points_Base5[0] = System::Drawing::PointF(x4, y4);
+	//points_Base5[1] = System::Drawing::PointF(x10, y10);
+	//points_Base5[2] = System::Drawing::PointF(x11, y11);
+	//points_Base5[3] = System::Drawing::PointF(x5, y5);
+	//// Заливаем грань
+	//e->Graphics->FillPolygon(brush_Base, points_Base5);
+
+	////// Координаты вершин грани 6
+	//array<System::Drawing::PointF>^ points_Base6 = gcnew array<System::Drawing::PointF>(4);
+	//points_Base6[0] = System::Drawing::PointF(x5, y5);
+	//points_Base6[1] = System::Drawing::PointF(x11, y11);
+	//points_Base6[2] = System::Drawing::PointF(x12, y12);
+	//points_Base6[3] = System::Drawing::PointF(x6, y6);
+	//// Заливаем грань
+	//e->Graphics->FillPolygon(brush_Base, points_Base6);
+	////---------------------------------------------------------------------------------------------------------------
 }
 private: System::Void pictureBox_dimetric_Paint(System::Object^ sender, System::Windows::Forms::PaintEventArgs^ e) {
 	int x1 = dek_p[0][0];
@@ -1621,29 +1880,145 @@ private: System::Void pictureBox_dimetric_Paint(System::Object^ sender, System::
 	int y12 = dek_p[11][1];
 	int z12 = dek_p[11][2];
 
-	//верхнее основание
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x1, y1, x2, y2);
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x2, y2, x3, y3);
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x3, y3, x4, y4);
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x4, y4, x5, y5);
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x5, y5, x6, y6);
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x6, y6, x1, y1);
+
+	////----------------------------------------------рисование ребёр-----------------------------------------------------
+	//bool edges[18] = { 0 };
+	//int countZeros = 0;
+	//for (int i = 0; i < sizeof(Roberts); i++) {
+	//	if (Roberts[i] == 0) countZeros++;
+	//}
+	////заднее основание
+	//if ((Roberts[0] <= 0) || (Roberts[1] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Green, x6, y6, x1, y1); { if (countZeros != sizeof(Roberts)) edges[0] = 1; } }
+	//if ((Roberts[0] <= 0) || (Roberts[2] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Green, x1, y1, x2, y2); { if (countZeros != sizeof(Roberts)) edges[1] = 1; } }
+	//if ((Roberts[0] <= 0) || (Roberts[3] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Green, x2, y2, x3, y3); { if (countZeros != sizeof(Roberts)) edges[2] = 1; } }
+	//if ((Roberts[0] <= 0) || (Roberts[4] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Green, x3, y3, x4, y4); { if (countZeros != sizeof(Roberts)) edges[3] = 1; } }
+	//if ((Roberts[0] <= 0) || (Roberts[5] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Green, x4, y4, x5, y5); { if (countZeros != sizeof(Roberts)) edges[4] = 1; } }
+	//if ((Roberts[0] <= 0) || (Roberts[6] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Green, x5, y5, x6, y6); { if (countZeros != sizeof(Roberts)) edges[5] = 1; } }
+
+	////переднее основание
+	//if ((Roberts[7] <= 0) || (Roberts[6] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Blue, x7, y7, x8, y8); { if (countZeros != sizeof(Roberts)) edges[6] = 1; } }
+	//if ((Roberts[7] <= 0) || (Roberts[1] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Blue, x8, y8, x9, y9); { if (countZeros != sizeof(Roberts)) edges[7] = 1; } }
+	//if ((Roberts[7] <= 0) || (Roberts[2] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Blue, x9, y9, x10, y10); { if (countZeros != sizeof(Roberts)) edges[8] = 1; } }
+	//if ((Roberts[7] <= 0) || (Roberts[3] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Blue, x10, y10, x11, y11); { if (countZeros != sizeof(Roberts)) edges[9] = 1; } }
+	//if ((Roberts[7] <= 0) || (Roberts[4] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Blue, x11, y11, x12, y12); { if (countZeros != sizeof(Roberts)) edges[10] = 1; } }
+	//if ((Roberts[7] <= 0) || (Roberts[5] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Blue, x12, y12, x7, y7); { if (countZeros != sizeof(Roberts)) edges[11] = 1; } }
+
+	////рёбры между основаниями (высоты)
+	//if ((Roberts[1] <= 0) || (Roberts[2] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Black, x1, y1, x7, y7); { if (countZeros != sizeof(Roberts)) edges[17] = 1; } }
+	//if ((Roberts[2] <= 0) || (Roberts[3] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Red, x2, y2, x8, y8); { if (countZeros != sizeof(Roberts)) edges[12] = 1; } }
+	//if ((Roberts[3] <= 0) || (Roberts[4] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Red, x3, y3, x9, y9); { if (countZeros != sizeof(Roberts)) edges[13] = 1; } }
+	//if ((Roberts[4] <= 0) || (Roberts[5] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Red, x4, y4, x10, y10); { if (countZeros != sizeof(Roberts)) edges[14] = 1; } }
+	//if ((Roberts[5] <= 0) || (Roberts[6] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Red, x5, y5, x11, y11); { if (countZeros != sizeof(Roberts)) edges[15] = 1; } }
+	//if ((Roberts[6] <= 0) || (Roberts[1] <= 0)) { e->Graphics->DrawLine(System::Drawing::Pens::Red, x6, y6, x12, y12); { if (countZeros != sizeof(Roberts)) edges[16] = 1; } }
+
+	////----------------------------------------------заливка граней-----------------------------------------------------
+	//// Координаты вершин задней грани
+	//array<System::Drawing::PointF>^ points_backBase = gcnew array<System::Drawing::PointF>(6);
+	//points_backBase[0] = System::Drawing::PointF(x1, y1);
+	//points_backBase[1] = System::Drawing::PointF(x2, y2);
+	//points_backBase[2] = System::Drawing::PointF(x3, y3);
+	//points_backBase[3] = System::Drawing::PointF(x4, y4);
+	//points_backBase[4] = System::Drawing::PointF(x5, y5);
+	//points_backBase[5] = System::Drawing::PointF(x6, y6);
+	//// Создаем кисть для заливки
+	//System::Drawing::SolidBrush^ brush_backBase = gcnew System::Drawing::SolidBrush(System::Drawing::Color::Green);
+	//// Заливаем грань
+	//if (edges[0] && edges[1] && edges[2] && edges[3] && edges[4] && edges[5]) e->Graphics->FillPolygon(brush_backBase, points_backBase);
+	//
+	//// Координаты вершин передней грани
+	//array<System::Drawing::PointF>^ points_frontBase = gcnew array<System::Drawing::PointF>(6);
+	//points_frontBase[0] = System::Drawing::PointF(x7, y7);
+	//points_frontBase[1] = System::Drawing::PointF(x8, y8);
+	//points_frontBase[2] = System::Drawing::PointF(x9, y9);
+	//points_frontBase[3] = System::Drawing::PointF(x10, y10);
+	//points_frontBase[4] = System::Drawing::PointF(x11, y11);
+	//points_frontBase[5] = System::Drawing::PointF(x12, y12);
+	//// Создаем кисть для заливки
+	//System::Drawing::SolidBrush^ brush_frontBase = gcnew System::Drawing::SolidBrush(System::Drawing::Color::Blue);
+	//// Заливаем грань
+	//if (edges[6] && edges[7] && edges[8] && edges[9] && edges[10] && edges[11]) e->Graphics->FillPolygon(brush_frontBase, points_frontBase);
+
+	//// Создаем кисть для заливки боковых граней
+	//System::Drawing::SolidBrush^ brush_Base = gcnew System::Drawing::SolidBrush(System::Drawing::Color::Red);
+
+	////// Координаты вершин грани 1
+	////array<System::Drawing::PointF>^ points_Base1 = gcnew array<System::Drawing::PointF>(4);
+	////points_Base1[0] = System::Drawing::PointF(x1, y1);
+	////points_Base1[1] = System::Drawing::PointF(x6, y6);
+	////points_Base1[2] = System::Drawing::PointF(x12, y12);
+	////points_Base1[3] = System::Drawing::PointF(x7, y7);
+	////// Заливаем грань
+	////if (edges[12]) e->Graphics->FillPolygon(brush_Base, points_Base1);
+
+	////// Координаты вершин грани 2
+	////array<System::Drawing::PointF>^ points_Base2 = gcnew array<System::Drawing::PointF>(4);
+	////points_Base2[0] = System::Drawing::PointF(x1, y1);
+	////points_Base2[1] = System::Drawing::PointF(x7, y7);
+	////points_Base2[2] = System::Drawing::PointF(x8, y8);
+	////points_Base2[3] = System::Drawing::PointF(x2, y2);
+	////// Заливаем грань
+	////if (edges[13]) e->Graphics->FillPolygon(brush_Base, points_Base2);
+
+	////// Координаты вершин грани 3
+	////array<System::Drawing::PointF>^ points_Base3 = gcnew array<System::Drawing::PointF>(4);
+	////points_Base3[0] = System::Drawing::PointF(x2, y2);
+	////points_Base3[1] = System::Drawing::PointF(x8, y8);
+	////points_Base3[2] = System::Drawing::PointF(x9, y9);
+	////points_Base3[3] = System::Drawing::PointF(x3, y3);
+	////// Заливаем грань
+	////if (edges[14]) e->Graphics->FillPolygon(brush_Base, points_Base3);
+
+	//// Координаты вершин грани 4
+	//array<System::Drawing::PointF>^ points_Base4 = gcnew array<System::Drawing::PointF>(4);
+	//points_Base4[0] = System::Drawing::PointF(x3, y3);
+	//points_Base4[1] = System::Drawing::PointF(x9, y9);
+	//points_Base4[2] = System::Drawing::PointF(x10, y10);
+	//points_Base4[3] = System::Drawing::PointF(x4, y4);
+	//// Заливаем грань
+	//if (edges[15]) e->Graphics->FillPolygon(brush_Base, points_Base4);
+
+	//// Координаты вершин грани 5
+	//array<System::Drawing::PointF>^ points_Base5 = gcnew array<System::Drawing::PointF>(4);
+	//points_Base5[0] = System::Drawing::PointF(x4, y4);
+	//points_Base5[1] = System::Drawing::PointF(x10, y10);
+	//points_Base5[2] = System::Drawing::PointF(x11, y11);
+	//points_Base5[3] = System::Drawing::PointF(x5, y5);
+	//// Заливаем грань
+	//if (edges[16]) e->Graphics->FillPolygon(brush_Base, points_Base5);
+
+	//// Координаты вершин грани 6
+	//array<System::Drawing::PointF>^ points_Base6 = gcnew array<System::Drawing::PointF>(4);
+	//points_Base6[0] = System::Drawing::PointF(x5, y5);
+	//points_Base6[1] = System::Drawing::PointF(x11, y11);
+	//points_Base6[2] = System::Drawing::PointF(x12, y12);
+	//points_Base6[3] = System::Drawing::PointF(x6, y6);
+	//// Заливаем грань
+	//if (edges[17]) e->Graphics->FillPolygon(brush_Base, points_Base6);
+	////---------------------------------------------------------------------------------------------------------------
+
+	//заднее основание
+	if ((Roberts[0] <= 0) || (Roberts[1] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x6, y6, x1, y1);
+	if ((Roberts[0] <= 0) || (Roberts[2] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x1, y1, x2, y2);
+	if ((Roberts[0] <= 0) || (Roberts[3] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x2, y2, x3, y3);
+	if ((Roberts[0] <= 0) || (Roberts[4] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x3, y3, x4, y4);
+	if ((Roberts[0] <= 0) || (Roberts[5] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x4, y4, x5, y5);
+	if ((Roberts[0] <= 0) || (Roberts[6] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x5, y5, x6, y6);
 
 	//нижнее основание
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x7, y7, x8, y8);
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x8, y8, x9, y9);
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x9, y9, x10, y10);
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x10, y10, x11, y11);
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x11, y11, x12, y12);
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x12, y12, x7, y7);
+	if ((Roberts[7] <= 0) || (Roberts[6] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x7, y7, x8, y8);
+	if ((Roberts[7] <= 0) || (Roberts[1] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x8, y8, x9, y9);
+	if ((Roberts[7] <= 0) || (Roberts[2] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x9, y9, x10, y10);
+	if ((Roberts[7] <= 0) || (Roberts[3] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x10, y10, x11, y11);
+	if ((Roberts[7] <= 0) || (Roberts[4] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x11, y11, x12, y12);
+	if ((Roberts[7] <= 0) || (Roberts[5] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x12, y12, x7, y7);
 
 	//рёбры между основаниями (высоты)
-	e->Graphics->DrawLine(System::Drawing::Pens::Black, x1, y1, x7, y7);
-	e->Graphics->DrawLine(System::Drawing::Pens::Red, x2, y2, x8, y8);
-	e->Graphics->DrawLine(System::Drawing::Pens::Red, x3, y3, x9, y9);
-	e->Graphics->DrawLine(System::Drawing::Pens::Red, x4, y4, x10, y10);
-	e->Graphics->DrawLine(System::Drawing::Pens::Red, x5, y5, x11, y11);
-	e->Graphics->DrawLine(System::Drawing::Pens::Red, x6, y6, x12, y12);
+	if ((Roberts[1] <= 0) || (Roberts[2] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Black, x1, y1, x7, y7);
+	if ((Roberts[2] <= 0) || (Roberts[3] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Red, x2, y2, x8, y8);
+	if ((Roberts[3] <= 0) || (Roberts[4] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Red, x3, y3, x9, y9);
+	if ((Roberts[4] <= 0) || (Roberts[5] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Red, x4, y4, x10, y10);
+	if ((Roberts[5] <= 0) || (Roberts[6] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Red, x5, y5, x11, y11);
+	if ((Roberts[6] <= 0) || (Roberts[1] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Red, x6, y6, x12, y12);
 }
 private: System::Void pictureBox_cabinet_Paint(System::Object^ sender, System::Windows::Forms::PaintEventArgs^ e) {
 	int x1 = dek_p[0][0];
@@ -1694,31 +2069,32 @@ private: System::Void pictureBox_cabinet_Paint(System::Object^ sender, System::W
 	int y12 = dek_p[11][1];
 	int z12 = dek_p[11][2];
 
-	//верхнее основание
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x1, y1, x2, y2);
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x2, y2, x3, y3);
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x3, y3, x4, y4);
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x4, y4, x5, y5);
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x5, y5, x6, y6);
-	e->Graphics->DrawLine(System::Drawing::Pens::Green, x6, y6, x1, y1);
+	//заднее основание
+	if ((Roberts[0] <= 0) || (Roberts[1] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x6, y6, x1, y1);
+	if ((Roberts[0] <= 0) || (Roberts[2] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x1, y1, x2, y2);
+	if ((Roberts[0] <= 0) || (Roberts[3] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x2, y2, x3, y3);
+	if ((Roberts[0] <= 0) || (Roberts[4] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x3, y3, x4, y4);
+	if ((Roberts[0] <= 0) || (Roberts[5] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x4, y4, x5, y5);
+	if ((Roberts[0] <= 0) || (Roberts[6] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Green, x5, y5, x6, y6);
 
 	//нижнее основание
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x7, y7, x8, y8);
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x8, y8, x9, y9);
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x9, y9, x10, y10);
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x10, y10, x11, y11);
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x11, y11, x12, y12);
-	e->Graphics->DrawLine(System::Drawing::Pens::Blue, x12, y12, x7, y7);
+	if ((Roberts[7] <= 0) || (Roberts[6] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x7, y7, x8, y8);
+	if ((Roberts[7] <= 0) || (Roberts[1] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x8, y8, x9, y9);
+	if ((Roberts[7] <= 0) || (Roberts[2] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x9, y9, x10, y10);
+	if ((Roberts[7] <= 0) || (Roberts[3] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x10, y10, x11, y11);
+	if ((Roberts[7] <= 0) || (Roberts[4] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x11, y11, x12, y12);
+	if ((Roberts[7] <= 0) || (Roberts[5] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Blue, x12, y12, x7, y7);
 
 	//рёбры между основаниями (высоты)
-	e->Graphics->DrawLine(System::Drawing::Pens::Black, x1, y1, x7, y7);
-	e->Graphics->DrawLine(System::Drawing::Pens::Red, x2, y2, x8, y8);
-	e->Graphics->DrawLine(System::Drawing::Pens::Red, x3, y3, x9, y9);
-	e->Graphics->DrawLine(System::Drawing::Pens::Red, x4, y4, x10, y10);
-	e->Graphics->DrawLine(System::Drawing::Pens::Red, x5, y5, x11, y11);
-	e->Graphics->DrawLine(System::Drawing::Pens::Red, x6, y6, x12, y12);
+	if ((Roberts[1] <= 0) || (Roberts[2] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Black, x1, y1, x7, y7);
+	if ((Roberts[2] <= 0) || (Roberts[3] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Red, x2, y2, x8, y8);
+	if ((Roberts[3] <= 0) || (Roberts[4] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Red, x3, y3, x9, y9);
+	if ((Roberts[4] <= 0) || (Roberts[5] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Red, x4, y4, x10, y10);
+	if ((Roberts[5] <= 0) || (Roberts[6] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Red, x5, y5, x11, y11);
+	if ((Roberts[6] <= 0) || (Roberts[1] <= 0)) e->Graphics->DrawLine(System::Drawing::Pens::Red, x6, y6, x12, y12);
 }
 private: System::Void btn_draw_Click(System::Object^ sender, System::EventArgs^ e) {
+	for (int i = 0; i < sizeof(Roberts); i++) Roberts[i] = 0;
 	hmg_p[0][0] = Convert::ToDouble(textBox_x1->Text);
 	hmg_p[0][1] = Convert::ToDouble(textBox_y1->Text);
 	hmg_p[0][2] = Convert::ToDouble(textBox_z1->Text);
@@ -1799,6 +2175,8 @@ private: System::Void btn_draw_Click(System::Object^ sender, System::EventArgs^ 
 
 }
 private: System::Void btn_init_Click(System::Object^ sender, System::EventArgs^ e) {
+	for (int i = 0; i < sizeof(Roberts); i++) Roberts[i] = 0;
+
 	double centerX = Convert::ToDouble(textBox_centroidx->Text);
 	double centerY = Convert::ToDouble(textBox_centroidy->Text);
 	double centerZ = Convert::ToDouble(textBox_centroidz->Text);
@@ -1851,7 +2229,6 @@ private: System::Void btn_init_Click(System::Object^ sender, System::EventArgs^ 
 	update_textBoxes();
 	pictureBox_cabinet->Refresh();
 }
-
 private: System::Void btn_rotate_Click(System::Object^ sender, System::EventArgs^ e) {
 	double matrix_buf_1[vert_num][dimension] = { 0 };// буфферная матрица преобразования
 	double matrix_buf_2[vert_num][dimension] = { 0 };// буфферная матрица преобразования
@@ -1965,6 +2342,46 @@ private: System::Void btn_rotate_Click(System::Object^ sender, System::EventArgs
 	pictureBox_cabinet->Refresh();
 
 	update_textBoxes();
+	btn_removeFaces_Click(sender, e);
+}
+private: System::Void btn_removeFaces_Click(System::Object^ sender, System::EventArgs^ e) {
+	// служебный массив для хранения результата преобразования
+	double Result[vert_num][dimension] = { 0 };
+
+	// проведение центрального проецирования
+	matrix_mult(vert_num, hmg_p, matrix_Center, Result);
+	hmg2dek(vert_num, Result, dek_p);
+	// заполнение массива результатами скалярного произведения нормали к // грани и вектора, направленного на наблюдателя.
+	removeFaces();
+	// вызов обработчика отрисовки
+	pictureBox_central->Refresh();
+
+	// проведение проецирования сверху
+	matrix_mult(vert_num, hmg_p, matrix_Front, Result);
+	hmg2dek(vert_num, Result, dek_p);
+	// заполнение массива результатами скалярного произведения нормали к // грани и вектора, направленного на наблюдателя.
+	removeFaces();
+	// вызов обработчика отрисовки
+	pictureBox_front->Refresh();
+
+	// проведение проецирования диметрии
+	matrix_mult(vert_num, hmg_p, matrix_Dimetry, Result);
+	hmg2dek(vert_num, Result, dek_p);
+	// заполнение массива результатами скалярного произведения нормали к // грани и вектора, направленного на наблюдателя.
+	removeFaces();
+	// вызов обработчика отрисовки
+	pictureBox_dimetric->Refresh();
+
+	// проведение проецирования кабине
+	matrix_mult(vert_num, hmg_p, matrix_Cabinet, Result);
+	hmg2dek(vert_num, Result, dek_p);
+	// заполнение массива результатами скалярного произведения нормали к // грани и вектора, направленного на наблюдателя.
+	removeFaces();
+	// вызов обработчика отрисовки
+	pictureBox_cabinet->Refresh();
+}
+private: System::Void btn_fillFaces_Click(System::Object^ sender, System::EventArgs^ e) {
+
 }
 };
 }
